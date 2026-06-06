@@ -1,0 +1,116 @@
+ $ mkdir practic
+
+ $ cd practic/
+
+ $ git init
+
+.
+$ ls -a
+
+
+.
+$ git status
+
+.
+$ git add ex1.py
+
+.
+$ git status
+
+.
+$ git commit -m "first comit"
+
+
+.
+$ git config --global user.email "ashrayyenpreddiwar29@gmail.com"
+
+$ git config --global user.name "Ashu-ye"
+
+.
+$ git commit -m "first comit"
+
+.
+$ git log
+
+.
+$ git status
+
+.
+$ git add ex2.py
+
+.
+$ git status
+
+.
+$ git commit -m "add only ex2.py"
+
+.
+$ git log
+
+.
+$ git status
+
+.
+$ git add .
+
+.
+$ git status
+
+.
+$ git commit -m "add ex1.py"
+
+
+Roll back to 1st commit -- ex2.py is deleted 
+
+$ git checkout 0123a1917ad79f781255ff8cfa1e92af266aac28
+
+come to the original state where your both the files are present 
+$ git checkout master
+
+to see the branches 
+$ git branch
+
+to switch the master branch
+$ git checkout master
+
+create new branch
+$  git branch dev
+
+create new branch in dev branch
+$ git checkout -b multiply/ash
+
+
+create a file
+$ notepad multiply.py
+
+
+$ git status
+
+$ git add multiply.py
+
+$ git commit -m "multiply.py"
+
+$ git checkout dev
+
+merge miultiply.py into dev
+$ git merge multiply/ash
+
+$ git log 
+
+
+
+Switch to master 
+$ git checkout master
+
+merge dev branch to master
+$ git merge dev
+
+$ git log
+
+
+
+To push your repo to GitHub
+
+$ git remote add origin https://github.com/Ashu-ye/practic.git 	
+$ git branch -M master
+git push -u origin master
