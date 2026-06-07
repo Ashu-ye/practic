@@ -1,0 +1,164 @@
+Launch the Original EC2 Instance
+1. Open the EC2 Dashboard in the AWS Management Console. [1]
+2. Click Launch instance.
+3. Configure the following settings:
+o Name: lab_q1_apache
+o Application and OS Images (AMI): Select Ubuntu (choose the latest Ubuntu Server LTS).
+o Instance type: t2.micro (or t3.micro depending on account eligibility).
+o Key pair: Select an existing key pair or create a new one to log in.
+o Network settings: Ensure Auto-assign public IP is set to Enable.
+o Security Graphics/Groups: Create a security group and check the boxes to Allow SSH traffic and Allow HTTP traffic from the internet. [1, 2, 3, 4, 5]
+4. Click Launch instance. Note down its Availability Zone
+Step 2 & 3: Install Apache and Create the Web Page
+1. Go to your EC2 Instances dashboard.
+2. Select your running lab_q1_apache instance.
+3. Click the Connect button at the top of the page.
+4. Select the EC2 Instance Connect tab.
+5. Click Connect to open a secure terminal directly in your web browser.
+
+Once the black terminal screen loads, copy and paste the following block of code, then press Enter:
+bash
+sudo apt update -y
+sudo apt install apache2 -y
+sudo systemctl start apache2
+sudo systemctl enable apache2
+echo "260240123009" | sudo tee /var/www/html/index.html
+Step 4: Verify the Web Page
+1. Copy the Public IPv4 address of lab_q1_apache from the EC2 console.
+2. Open a new browser tab and navigate to: http://<Your-Public-IP>
+3. Confirm that your PRN number is visible on the screen. [1]
+
+Step 5: Create an EBS Snapshot
+1. In the EC2 console left menu, click Instances and select lab_q1_apache.
+2. Click on the Storage tab at the bottom, and click the Volume ID linked to the /dev/sda1 or /dev/xvda root volume. Open that link or instance
+3. Select the checked volume, click Actions, and choose Create snapshot.
+4. Add a description: Root volume snapshot for lab_q1_apache assignment
+5. Click Create snapshot.
+
+Step 6: Create an AMI from the Snapshot [1]
+1. In the EC2 console left menu, click Snapshots under Elastic Block Store. [1, 2]
+2. Find your newly created snapshot (wait until its status is "Completed").
+3. Select the snapshot, click Actions, and choose Create image from snapshot. [1, 2, 3]
+4. Configure the image details:
+o Name: lab_q1_apache_snapshot
+o Architecture: x86_64
+o Root volume device name: /dev/sda1 (matching standard Ubuntu configurations).
+o Virtualization type: Hardware-assisted virtualization (HVM) [1]
+5. Click Create image. [1]
+
+Step 7 & 8: Launch the New EC2 Instance in a Different AZ [1, 2]
+1. In the EC2 console left menu, click AMIs under Images. [1]
+2. Select your custom AMI lab_q1_apache_snapshot and click Launch instance from AMI. [1]
+3. Configure the new instance:
+o Name: snap_lq1
+o Instance type: t2.micro
+o Network settings: Click Edit next to network settings.
+o Subnet: Select a subnet that belongs to a different Availability Zone than your first instance (e.g., if the first was us-east-1a, pick us-east-1b).
+o Auto-assign public IP: Ensure this is changed to Enable.
+o Security Group: Select the same security group you created in Step 1 (or create a new one allowing HTTP port 80).
+4. Click Launch instance.
+
+
+
+VPC
+
+1. Create the Custom VPC [1]
+
+1. Open your cloud management console.
+2. Navigate to the VPC Dashboard and click Create VPC.
+3. Select VPC only.
+4. Set the Name tag to ditiss-lab.
+5. Set the IPv4 CIDR block to $172.20.0.0/16$.
+6. Click Create VPC. [1, 2, 3]
+
+
+2. Create the Subnets
+
+1. Navigate to Subnets and click Create subnet. [1]
+2. Select your ditiss-lab VPC.
+3. Configure the Public Subnet:
+o Subnet name: ditiss-public-subnet
+o IPv4 CIDR block: $172.20.1.0/24$ [1]
+4. Configure the Private Subnet:
+o Subnet name: ditiss-private-subnet
+o IPv4 CIDR block: $172.20.10.0/24$ [1, 2]
+5. Click Create subnet. [1]
+6. Select ditiss-public-subnet, click Actions ? Edit subnet settings, check Enable auto-assign public IPv4 address, and save. [1, 2, 3, 4]
+
+
+
+3. Configure Routing and Internet Access [1]
+
+1. Navigate to Internet Gateways and click Create internet gateway. [1]
+2. Name it ditiss-igw and click Create. [1]
+3. Select ditiss-igw, click Actions ? Attach to VPC, select ditiss-lab, and click Attach. [1]
+4. Navigate to Route Tables. You will see a main route table automatically created for your VPC. Name it ditiss-private-rt. It handles internal local routing for your private subnet. [1, 2]
+5. Click Create route table to create a public route table:
+o Name: ditiss-public-rt
+o VPC: ditiss-lab [1]
+6. Select ditiss-public-rt, go to the Routes tab, and click Edit routes. [1, 2]
+7. Click Add route, set Destination to $0.0.0.0/0$, set Target to Internet Gateway (ditiss-igw), and save. [1, 2, 3, 4]
+8. Go to the Subnet associations tab of ditiss-public-rt, click Edit subnet associations, select ditiss-public-subnet, and save.
+
+
+
+4. Deploy the EC2 Instances [1]
+
+1. Navigate to the EC2 Dashboard and click Launch instance. [1]
+2. Launch the Public Instance:
+o Name: ditiss-public-ec2
+o AMI / OS: Amazon Linux 2023 or Ubuntu
+o Network: ditiss-lab
+o Subnet: ditiss-public-subnet
+o Security Group: Create a new group allowing SSH (Port 22) from your local IP. [1, 2, 3, 4]
+3. Launch the Private Instance:
+o Name: ditiss-private-ec2
+o AMI / OS: Same as the public instance
+o Network: ditiss-lab
+o Subnet: ditiss-private-subnet
+o Security Group: Create a new group allowing SSH (Port 22) and HTTP (Port 80) exclusively from the public subnet range ($172.20.1.0/24$)
+
+
+5. Install HTTPD on Private Instance
+Because your private instance resides in an isolated subnet without a NAT Gateway, you must first access it via your public instance (acting as a bastion host) to configure its web services. [1, 2, 3, 4]
+1. Connect to your public instance via SSH from your local machine.
+2. Forward or copy your SSH key pair onto your public instance.
+3. From the public instance terminal, SSH into the private instance using its private IP:
+
+bash
+ssh -i your-key.pem ec2-user@172.20.10.x
+Update the package manager database:
+bash
+sudo dnf update -y 
+
+
+Install the Apache HTTP server:
+bash
+sudo dnf install httpd -y
+Start and enable the web service:
+bash
+sudo systemctl start httpd     # For Amazon Linux (use apache2 for Ubuntu)
+sudo systemctl enable httpd
+
+
+
+Create a basic test landing page:
+bash
+echo "Hello from the Private Subnet Webserver!" | sudo tee /var/www/html/index.html
+
+
+Disconnect from the private instance to return to your public instance terminal:
+bash
+exit
+
+
+Verify with Curl from the Public Instance
+From the terminal prompt of your publicly connected instance, execute a curl request pointing directly to the internal IP address assigned to your private instance:
+bash
+curl http://172.20.10.x
+
+
+Verification ResultUpon running the command, you will receive the following response directly in your public instance terminal console:
+
+Text
+Hello from the Private Subnet Webserver!
