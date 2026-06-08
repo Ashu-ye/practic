@@ -1,0 +1,58 @@
+Open PowerShell and Create the Directory
+1.	Press the Windows Key, type PowerShell, and press Enter.
+2.	Run these commands to create your project folder and navigate inside it:
+3.	
+powershell
+mkdir dockerQ3
+cd dockerQ3
+
+
+Step 2: Create the Dockerfile
+Windows handles text creation differently than Linux. Run this exact command block in PowerShell to generate your Dockerfile with the correct settings:
+powershell
+@'
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y curl
+'@ | Out-File -Encoding ascii Dockerfile
+Use code with caution.
+Step 3: Build the Image with Latest Tag
+Compile your image layers using the latest reference marker. Do not forget the period . at the end of the command:
+powershell
+docker build -t ubuntu:latest .
+Use code with caution.
+Step 4: Verify the Initial Built Image
+List your local storage database to confirm your compiled build output registered properly:
+powershell
+docker images
+Use code with caution.
+Look at the output table. Verify a row shows the repository name ubuntu with the tag identifier text latest.
+Step 5: Run Container and Verify Curl version
+Instantiate a temporary runtime container out of your built snapshot to evaluate your package execution:
+powershell
+docker run --rm ubuntu:latest curl --version
+Use code with caution.
+Your console window layout will print the detailed build version and features supported by the internal active curl tool.
+Step 6: Assign Additional Version and Release Tags
+Map your multi-tier tracking labels pointing directly to the exact same immutable content layers:
+powershell
+docker tag ubuntu:latest ubuntu:v1.0
+docker tag ubuntu:latest ubuntu:stable
+Use code with caution.
+Step 7: Verify the Presence of All Three Tags
+Query your platform container storage listing again to inspect structural mappings:
+powershell
+docker images
+Use code with caution.
+Verify your console log shows three separate rows (latest, v1.0, and stable). Notice that all three share the exact same alphanumeric IMAGE ID string.
+Step 8: Delete the Stable Tag Reference
+Execute the target removal instruction command to disconnect your secondary staging reference label:
+powershell
+docker rmi ubuntu:stable
+Use code with caution.
+The command output string will specifically print Untagged: ubuntu:stable without wiping out underlying file blocks because other tracking pointers are still bound to them.
+Step 9: Final Mappings State Verification
+Run a final system state inspection check to guarantee your primary functional version labels remain completely unaffected and preserved:
+powershell
+docker images
+Use code with caution.
+
